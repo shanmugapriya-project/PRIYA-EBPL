@@ -1,0 +1,70 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Hypothetical sample dataset (replace with your actual data)
+data = {
+    'speeding': [1, 0, 1, 0, 0, 1, 0, 1, 1, 0],
+    'alcohol_involved': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+    'junction_type': [0, 1, 0, 1, 0, 0, 1, 0, 0, 1],  # 0: No Junction, 1: Junction
+    'day_of_week': [1, 2, 3, 4, 5, 6, 7, 1, 2, 3],   # 1: Mon, 7: Sun
+    'weather_condition': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0], # 0: Clear, 1: Adverse
+    'accident': [1, 0, 1, 0, 0, 1, 0, 1, 1, 0]       # 1: Accident occurred, 0: No accident
+}
+
+df = pd.DataFrame(data)
+
+# Separate features (independent variables) and target (dependent variable)
+X = df[['speeding', 'alcohol_involved', 'junction_type', 'day_of_week', 'weather_condition']]
+y = df['accident']
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train a simple Random Forest Classifier model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6, 5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+
+# Feature Importance (for Random Forest)
+feature_importances = model.feature_importances_
+features = X.columns
+importance_df = pd.DataFrame({'Feature': features, 'Importance': feature_importances})
+importance_df = importance_df.sort_values(by='Importance', ascending=False)
+print("\nFeature Importance:")
+print(importance_df)
+
+# Example of predicting on new, unseen data
+new_data = pd.DataFrame({
+    'speeding': [1, 0],
+    'alcohol_involved': [0, 1],
+    'junction_type': [1, 0],
+    'day_of_week': [5, 7],
+    'weather_condition': [0, 1]
+})
+
+new_predictions = model.predict(new_data)
+print("\nPredictions for new data:")
+for i in range(len(new_predictions)):
+    prediction = "Accident likely" if new_predictions[i] == 1 else "No accident likely"
+    print(f"Data Point {i+1}: {prediction}")
